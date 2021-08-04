@@ -1,10 +1,10 @@
 package com.proposta.contrato.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.validation.Valid;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.proposta.contrato.dto.ContratoDto;
 import com.proposta.contrato.entity.Contrato;
+import com.proposta.contrato.exception.ContratoException;
 import com.proposta.contrato.repository.ContratoRepository;
 
 import io.swagger.annotations.ApiOperation;
@@ -37,7 +39,7 @@ public class ContratoController {
 		    @ApiResponse(code = 500, message = "Foi gerada uma exceção"),
 		})
 	@PostMapping(produces="application/json", consumes = "application/json")
-	public Contrato adicionar(@Valid @RequestBody Contrato contrato) {
+	public Contrato adicionar(@Valid @RequestBody Contrato contrato) throws ContratoException {
 		return contratoRepository.save(contrato);
 	}
 	
@@ -48,9 +50,16 @@ public class ContratoController {
 		    @ApiResponse(code = 500, message = "Foi gerada uma exceção"),
 		})
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET, produces="application/json")
-	public ResponseEntity<Contrato> buscar(@PathVariable Long id){
-		return contratoRepository.findById(id).map(record -> ResponseEntity.ok().body(record))
-		           .orElse(ResponseEntity.notFound().build());
+	public ResponseEntity<ContratoDto> buscar(@PathVariable Long id) throws ContratoException, Exception{
+		Optional<Contrato> contrato = contratoRepository.findById(id);			
+		
+		if(contrato.isEmpty()) {
+			throw new ContratoException("Contrato não encontrato: " + id);
+		}
+		
+		ContratoDto contratoDto = new ContratoDto(contrato.get());
+		
+		return ResponseEntity.ok().body(contratoDto);
 
 	}
 	
@@ -61,7 +70,7 @@ public class ContratoController {
 		    @ApiResponse(code = 500, message = "Foi gerada uma exceção"),
 		})
 	@RequestMapping(method = RequestMethod.GET, produces="application/json")
-	public ResponseEntity<List<Contrato>> listarContratos(){
+	public ResponseEntity<List<Contrato>> listarContratos() throws ContratoException{
 		return ResponseEntity.ok().body(contratoRepository.findAll());
 
 	}
@@ -73,14 +82,18 @@ public class ContratoController {
 		    @ApiResponse(code = 500, message = "Foi gerada uma exceção"),
 		})
 	@PutMapping(produces="application/json", consumes = "application/json")
-	public ResponseEntity<Contrato> atualizar(@Valid @RequestBody Contrato usuario){
-		return contratoRepository.findById(usuario.getId()).map(record -> 
-						{
-							BeanUtils.copyProperties(usuario, record, "id");
-							contratoRepository.save(record);
-							return ResponseEntity.ok().body(record);
-						})
-		           .orElse(ResponseEntity.notFound().build());
+	public ResponseEntity<ContratoDto> atualizar(@Valid @RequestBody Contrato contrato) throws ContratoException{
+		Optional<Contrato> record = contratoRepository.findById(contrato.getId());	
+		
+		if(record.isEmpty()) {
+			throw new ContratoException("Contrato não encontrato: " + contrato.getId());
+		}
+		
+		Contrato contratoAtualizado = contratoRepository.save(contrato);
+		
+		ContratoDto contratoDto = new ContratoDto(contratoAtualizado);
+		return ResponseEntity.ok().body(contratoDto);
+		
 	}
 	
 	@ApiOperation(value = "Deleta um contrato de acordo com o ID passado")
@@ -90,12 +103,19 @@ public class ContratoController {
 		    @ApiResponse(code = 500, message = "Foi gerada uma exceção"),
 		})
 	@DeleteMapping("/{id}")
-	public ResponseEntity<?> remover(@PathVariable Long id){
-		return contratoRepository.findById(id)
-		           .map(record -> {
-		        	   contratoRepository.deleteById(id);
-		               return ResponseEntity.ok().build();
-		           }).orElse(ResponseEntity.notFound().build());
+	public ResponseEntity<?> remover(@PathVariable Long id) throws ContratoException{
+		
+		Optional<Contrato> record = contratoRepository.findById(id);	
+		
+		if(record.isEmpty()) {
+			throw new ContratoException("Contrato não encontrato: " + id);
+		}
+		
+		contratoRepository.deleteById(id);
+		
+		return ResponseEntity.ok().build();
+		
+		
 	}
 
 }
