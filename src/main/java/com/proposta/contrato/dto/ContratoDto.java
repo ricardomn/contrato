@@ -23,6 +23,16 @@ public class ContratoDto {
 		this.dataContrato = contrato.getDataContrato();
 		this.valorContrato = contrato.getValorContrato();
 	}
+	
+	public ContratoDto(Long codigoProposta, Long codigoCliente, Date dataContrato, BigDecimal valorContrato) {
+		super();
+		this.codigoProposta = codigoProposta;
+		this.codigoCliente = codigoCliente;
+		this.dataContrato = dataContrato;
+		this.valorContrato = valorContrato;
+	}
+	
+	
 	public Long getId() {
 		return id;
 	}
