@@ -1,5 +1,5 @@
 # contrato
-Projeto de CRUD básico para inserção de um contrato, utilizando Spring Boot, Lombok, banco de memória H2
+Projeto de CRUD básico para Manter uma entidade de contrato, utilizando Spring Boot, Lombok, banco de memória H2 e Testes unitários
 
 # swagger
 O endereço para consultar a documentação da API:
